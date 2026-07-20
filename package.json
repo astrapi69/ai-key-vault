@@ -1,0 +1,33 @@
+{
+    "name": "ai-key-vault-monorepo",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "description": "Monorepo for @astrapi69/passphrase-vault, @astrapi69/ai-key-vault and @astrapi69/ai-key-vault-react",
+    "license": "MIT",
+    "author": "Asterios Raptis",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/astrapi69/ai-key-vault.git"
+    },
+    "workspaces": [
+        "packages/*"
+    ],
+    "scripts": {
+        "build": "npm run build --workspace packages/passphrase-vault && npm run build --workspace packages/core",
+        "test": "vitest run",
+        "typecheck": "tsc -p tsconfig.json --noEmit",
+        "lint": "eslint packages/*/src"
+    },
+    "engines": {
+        "node": ">=20"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.30.0",
+        "eslint": "^9.30.0",
+        "tsup": "^8.5.0",
+        "typescript": "^6.0.0",
+        "typescript-eslint": "^8.35.0",
+        "vitest": "^4.0.0"
+    }
+}

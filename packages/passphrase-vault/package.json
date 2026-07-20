@@ -1,0 +1,40 @@
+{
+    "name": "@astrapi69/passphrase-vault",
+    "version": "0.1.0",
+    "description": "Passphrase-based authenticated encryption of a small JSON value using WebCrypto only (PBKDF2-HMAC-SHA-256 + AES-GCM-256)",
+    "license": "MIT",
+    "author": "Asterios Raptis",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/astrapi69/ai-key-vault.git",
+        "directory": "packages/passphrase-vault"
+    },
+    "keywords": ["encryption", "passphrase", "webcrypto", "pbkdf2", "aes-gcm", "vault"],
+    "type": "module",
+    "main": "./dist/index.cjs",
+    "module": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "import": {
+                "types": "./dist/index.d.ts",
+                "default": "./dist/index.js"
+            },
+            "require": {
+                "types": "./dist/index.d.cts",
+                "default": "./dist/index.cjs"
+            }
+        }
+    },
+    "files": ["dist", "README.md"],
+    "sideEffects": false,
+    "scripts": {
+        "build": "tsup"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "engines": {
+        "node": ">=20"
+    }
+}
