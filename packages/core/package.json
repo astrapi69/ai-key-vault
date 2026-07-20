@@ -1,6 +1,6 @@
 {
     "name": "@astrapi69/ai-key-vault",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Storage-agnostic BYOK AI provider settings core: provider registry, key store adapter interface, passphrase-encrypted key vault, browser-direct chat clients with SSE streaming, and model discovery",
     "license": "MIT",
     "author": "Asterios Raptis",
@@ -32,7 +32,7 @@
         "build": "tsup"
     },
     "dependencies": {
-        "@astrapi69/passphrase-vault": "0.1.0"
+        "@astrapi69/passphrase-vault": "0.1.1"
     },
     "publishConfig": {
         "access": "public"
