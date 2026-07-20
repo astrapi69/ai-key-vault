@@ -3,8 +3,9 @@
     "compilerOptions": {
         "paths": {
             "@astrapi69/passphrase-vault": ["./packages/passphrase-vault/src/index.ts"],
-            "@astrapi69/ai-key-vault": ["./packages/core/src/index.ts"]
+            "@astrapi69/ai-key-vault": ["./packages/core/src/index.ts"],
+            "@astrapi69/ai-key-vault-react": ["./packages/react/src/index.ts"]
         }
     },
-    "include": ["packages/*/src/**/*.ts"]
+    "include": ["packages/*/src/**/*.ts", "packages/*/src/**/*.tsx"]
 }

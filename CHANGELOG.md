@@ -6,6 +6,19 @@ packages follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `@astrapi69/ai-key-vault-react` 0.1.0: the React UI layer. An
+  `AiSettingsProvider` injects the storage adapter, provider registry,
+  active user id, a `t(key, fallback)` translate function, a notify/confirm
+  surface, and UI slots (Button, Input, Link, optional per-provider icons and
+  a ModelPicker) — the components import no storage, i18n, router or toast
+  library directly. Ships `AiSettingsPanel`, `ApiKeyRow`,
+  `ConfiguredProvidersTable`, `ApiKeyRequiredNotice`, `KeyVaultSection`,
+  `KeyVaultImportForm`, `SecretInput`, plus the `useAiKeyStore` and
+  `useApiKeyStatus` hooks. Optional adapter capabilities (test / backup)
+  gate the corresponding affordances. Extracted from adaptive-learner.
+
 ## [0.1.0] - 2026-07-20
 
 ### Added

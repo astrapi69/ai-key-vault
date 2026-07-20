@@ -26,10 +26,12 @@ release-check: lint typecheck test build
 publish-dry: release-check
 	npm publish --dry-run --workspace packages/passphrase-vault
 	npm publish --dry-run --workspace packages/core
+	npm publish --dry-run --workspace packages/react
 
 publish: release-check
 	npm publish --workspace packages/passphrase-vault
 	npm publish --workspace packages/core
+	npm publish --workspace packages/react
 
 clean:
 	rm -rf packages/*/dist node_modules packages/*/node_modules

@@ -14,7 +14,7 @@
         "packages/*"
     ],
     "scripts": {
-        "build": "npm run build --workspace packages/passphrase-vault && npm run build --workspace packages/core",
+        "build": "npm run build --workspace packages/passphrase-vault && npm run build --workspace packages/core && npm run build --workspace packages/react",
         "test": "vitest run",
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "lint": "eslint packages/*/src"
@@ -24,7 +24,14 @@
     },
     "devDependencies": {
         "@eslint/js": "^9.30.0",
+        "@testing-library/react": "^16.1.0",
+        "@types/react": "^19.0.0",
+        "@types/react-dom": "^19.0.0",
         "eslint": "^9.30.0",
+        "eslint-plugin-react-hooks": "^5.1.0",
+        "happy-dom": "^15.11.0",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
         "tsup": "^8.5.0",
         "typescript": "^6.0.0",
         "typescript-eslint": "^8.35.0",

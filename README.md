@@ -13,7 +13,7 @@ stack had been rebuilt several times across projects.
 |---|---|
 | [`@astrapi69/passphrase-vault`](packages/passphrase-vault) | Zero-dependency passphrase-based authenticated encryption of a small JSON value (WebCrypto PBKDF2 + AES-GCM). Usable on its own, e.g. for any local-first app that needs an encrypted export file. |
 | [`@astrapi69/ai-key-vault`](packages/core) | Core: provider registry, `AiKeyStoreAdapter` storage interface, key vault payload + import/export orchestration, browser-direct chat clients (anthropic/openai/gemini, incl. SSE streaming), model discovery, key format validation, status classification, secret masking. Framework-free. |
-| `@astrapi69/ai-key-vault-react` | React UI layer (settings panel, provider table, key vault import/export components). Planned — see issue #2. |
+| [`@astrapi69/ai-key-vault-react`](packages/react) | React UI layer: an `AiSettingsProvider` plus the settings panel, provider table, API-key rows, the key vault import/export components, and the `useAiKeyStore` / `useApiKeyStatus` hooks. Storage-, i18n- and UI-slot-injectable. |
 
 ## Design principles
 
