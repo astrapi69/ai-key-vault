@@ -22,3 +22,4 @@ jobs:
       - run: npm run build
       - run: npm publish --dry-run --workspace packages/passphrase-vault
       - run: npm publish --dry-run --workspace packages/core
+      - run: npm publish --dry-run --workspace packages/react
