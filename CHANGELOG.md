@@ -6,6 +6,8 @@ packages follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-20
+
 ### Added
 
 - `@astrapi69/ai-key-vault-react` 0.1.0: the React UI layer. An
