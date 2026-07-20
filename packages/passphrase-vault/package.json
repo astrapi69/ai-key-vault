@@ -1,6 +1,6 @@
 {
     "name": "@astrapi69/passphrase-vault",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Passphrase-based authenticated encryption of a small JSON value using WebCrypto only (PBKDF2-HMAC-SHA-256 + AES-GCM-256)",
     "license": "MIT",
     "author": "Asterios Raptis",

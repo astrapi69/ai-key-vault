@@ -1,6 +1,6 @@
 {
     "name": "@astrapi69/ai-key-vault-react",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "React UI for BYOK AI provider settings and the encrypted key vault: settings panel, provider table, key vault import/export — storage-, i18n- and UI-slot-injectable",
     "license": "MIT",
     "author": "Asterios Raptis",
@@ -32,7 +32,7 @@
         "build": "tsup"
     },
     "dependencies": {
-        "@astrapi69/ai-key-vault": "0.1.0"
+        "@astrapi69/ai-key-vault": "0.1.1"
     },
     "peerDependencies": {
         "react": "^18 || ^19"
