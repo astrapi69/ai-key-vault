@@ -1,6 +1,7 @@
 /** @vitest-environment happy-dom */
 import { afterEach, describe, expect, it } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
+import { emitSettingsRefresh } from "@astrapi69/ai-key-vault";
 
 import { useAiKeyStore } from "./useAiKeyStore";
 import { _resetApiKeyStatusCacheForTests } from "./useApiKeyStatus";
@@ -123,6 +124,24 @@ describe("useAiKeyStore", () => {
             await confirmed.result.current.handleDeleteKey("gemini");
         });
         expect(state.keys.gemini).toBeUndefined();
+    });
+
+    it("re-reads the snapshot on a settings-refresh bus emit (out-of-band import, #1836)", async () => {
+        const { adapter, state } = makeMockAdapter({ initialActive: "anthropic" });
+        const { result } = renderHook(() => useAiKeyStore(), {
+            wrapper: makeWrapper({ adapter }),
+        });
+        await waitFor(() => expect(result.current.loading).toBe(false));
+        expect(result.current.snapshot?.hasKey.anthropic).toBe(false);
+
+        // Simulate an out-of-band write (e.g. the key-vault import form) that
+        // announces itself on the shared bus.
+        state.keys.anthropic = "good-imported";
+        await act(async () => {
+            emitSettingsRefresh();
+            await Promise.resolve();
+        });
+        await waitFor(() => expect(result.current.snapshot?.hasKey.anthropic).toBe(true));
     });
 
     it("hides test/backup affordances when the adapter lacks the capabilities", async () => {

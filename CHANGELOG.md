@@ -6,6 +6,18 @@ packages follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-07-20
+
+### Fixed
+
+- `@astrapi69/ai-key-vault-react` 0.1.1: `useAiKeyStore` now subscribes to
+  the shared settings-refresh bus and re-reads its snapshot on emit, so the
+  settings panel reflects an out-of-band change (an encrypted key-vault
+  import elsewhere in the tree, or a backup restore) WITHOUT a reload
+  (#1836). Previously the panel kept showing the pre-import snapshot until it
+  remounted. Caught by the adaptive-learner Stage-3 device verification
+  (export → delete → paste-import round-trip).
+
 ## [0.2.0] - 2026-07-20
 
 ### Added
