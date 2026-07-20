@@ -13,7 +13,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import type { AiSettingsSnapshot, ApiKeyTestResult } from "@astrapi69/ai-key-vault";
+import {
+    subscribeSettingsRefresh,
+    type AiSettingsSnapshot,
+    type ApiKeyTestResult,
+} from "@astrapi69/ai-key-vault";
 
 import { useAiSettingsContext } from "../context";
 import { refreshApiKeyStatus } from "./useApiKeyStatus";
@@ -103,6 +107,24 @@ export function useAiKeyStore(): UseAiKeyStoreResult {
         return () => {
             alive = false;
         };
+    }, [adapter, userId, applySnapshot]);
+
+    // React to out-of-band settings mutations (e.g. an encrypted key-vault
+    // import, or a backup restore) announced on the shared settings-refresh
+    // bus, so the panel reflects them WITHOUT a reload (#1836). The import
+    // form lives elsewhere in the tree and emits on this bus after writing
+    // the keys; without this the panel would keep showing the pre-import
+    // snapshot until remount.
+    useEffect(() => {
+        if (!userId) return;
+        return subscribeSettingsRefresh(() => {
+            void adapter
+                .getSettings(userId)
+                .then((snap) => applySnapshot(snap))
+                .catch(() => {
+                    /* keep the last good snapshot on a transient read failure */
+                });
+        });
     }, [adapter, userId, applySnapshot]);
 
     const notifyError = useCallback(
