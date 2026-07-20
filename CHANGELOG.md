@@ -6,6 +6,8 @@ packages follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-07-20
+
 ### Added
 
 - `@astrapi69/passphrase-vault` 0.1.0: passphrase-based authenticated
