@@ -44,6 +44,7 @@ export interface AiSettingsProviderProps<P extends string = string> {
     notify?: NotifyApi;
     confirm?: ConfirmFn;
     vaultFormat?: string;
+    importProviderAliases?: Readonly<Record<string, string>>;
     browserRuntime?: boolean;
     Button?: ButtonSlot;
     Input?: InputSlot;
@@ -62,6 +63,7 @@ export function AiSettingsProvider<P extends string = string>({
     notify = defaultNotify,
     confirm = defaultConfirm,
     vaultFormat,
+    importProviderAliases,
     browserRuntime,
     Button = DefaultButton,
     Input = DefaultInput,
@@ -78,6 +80,7 @@ export function AiSettingsProvider<P extends string = string>({
             notify,
             confirm,
             vaultFormat,
+            importProviderAliases,
             browserRuntime: browserRuntime ?? adapter.capabilities.clientReadableKeys,
             Button,
             Input,
@@ -93,6 +96,7 @@ export function AiSettingsProvider<P extends string = string>({
             notify,
             confirm,
             vaultFormat,
+            importProviderAliases,
             browserRuntime,
             Button,
             Input,

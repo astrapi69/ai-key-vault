@@ -96,10 +96,22 @@ const LEGACY_MODEL_OVERRIDE_PREFIX = "model_override_";
  *
  * An unknown provider id in ``keys`` rejects the payload (a corrupted or
  * foreign file); an unknown ``activeProvider`` is coerced to ``null``.
+ *
+ * ``options.aliases`` maps a source provider id onto a host id BEFORE the
+ * known-id check, so a sibling app's vault imports cleanly when the two apps
+ * name the same provider differently (e.g. ``{ gemini: "google" }``). An id
+ * that is neither known nor aliased still rejects the payload, so the
+ * foreign-file protection is preserved.
  */
+export interface NormalizeKeyVaultOptions {
+    /** Map a source provider id onto a host id (applied before validation). */
+    aliases?: Readonly<Record<string, string>>;
+}
+
 export function normalizeKeyVaultPayload<P extends string>(
     providerIds: readonly P[],
     value: unknown,
+    options: NormalizeKeyVaultOptions = {},
 ): KeyVaultPayload<P> | null {
     if (!value || typeof value !== "object") return null;
     const v = value as Record<string, unknown>;
@@ -108,12 +120,14 @@ export function normalizeKeyVaultPayload<P extends string>(
         return null;
     }
     const known = new Set<string>(providerIds);
+    const alias = (id: string): string => options.aliases?.[id] ?? id;
     const rawKeys = v.keys as Record<string, unknown>;
     const keys: RawApiKeys<P> = {};
     for (const [provider, key] of Object.entries(rawKeys)) {
-        if (!known.has(provider)) return null;
+        const mapped = alias(provider);
+        if (!known.has(mapped)) return null;
         if (typeof key !== "string") return null;
-        keys[provider as P] = key;
+        keys[mapped as P] = key;
     }
 
     const rawSettings = v.providerSettings as Record<string, unknown>;
@@ -123,7 +137,9 @@ export function normalizeKeyVaultPayload<P extends string>(
             : typeof rawSettings.active_provider === "string"
               ? rawSettings.active_provider
               : null;
-    const activeProvider = activeRaw !== null && known.has(activeRaw) ? (activeRaw as P) : null;
+    const activeMapped = activeRaw !== null ? alias(activeRaw) : null;
+    const activeProvider =
+        activeMapped !== null && known.has(activeMapped) ? (activeMapped as P) : null;
 
     const modelOverride: Partial<Record<P, string | null>> = {};
     for (const provider of providerIds) modelOverride[provider] = null;
@@ -131,16 +147,17 @@ export function normalizeKeyVaultPayload<P extends string>(
         for (const [provider, override] of Object.entries(
             rawSettings.modelOverride as Record<string, unknown>,
         )) {
-            if (known.has(provider) && (typeof override === "string" || override === null)) {
-                modelOverride[provider as P] = override;
+            const mapped = alias(provider);
+            if (known.has(mapped) && (typeof override === "string" || override === null)) {
+                modelOverride[mapped as P] = override;
             }
         }
     }
     for (const [field, override] of Object.entries(rawSettings)) {
         if (!field.startsWith(LEGACY_MODEL_OVERRIDE_PREFIX)) continue;
-        const provider = field.slice(LEGACY_MODEL_OVERRIDE_PREFIX.length);
-        if (known.has(provider) && (typeof override === "string" || override === null)) {
-            modelOverride[provider as P] = override;
+        const mapped = alias(field.slice(LEGACY_MODEL_OVERRIDE_PREFIX.length));
+        if (known.has(mapped) && (typeof override === "string" || override === null)) {
+            modelOverride[mapped as P] = override;
         }
     }
 

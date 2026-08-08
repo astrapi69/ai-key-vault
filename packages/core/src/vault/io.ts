@@ -28,8 +28,31 @@ import {
 export interface KeyVaultIoOptions<P extends string = string> {
     /** The provider ids the app knows (usually ``registry.ids``). */
     providerIds: readonly P[];
-    /** Envelope format string; defaults to the passphrase-vault default. */
+    /**
+     * Envelope format string stamped on EXPORT (defaults to the
+     * passphrase-vault default). Import is format-AGNOSTIC: it decrypts with
+     * whatever format the file itself declares, so a sibling app's vault opens
+     * regardless of its label. See {@link importEncryptedKeyVault}.
+     */
     format?: string;
+    /**
+     * Map a source app's provider ids onto this app's ids on IMPORT
+     * (e.g. ``{ gemini: "google" }``), so a user can port keys between sibling
+     * apps that name the same provider differently. Applied before the
+     * known-id check; an id that is neither known nor aliased still rejects.
+     */
+    providerAliases?: Readonly<Record<string, string>>;
+}
+
+/** Read the plaintext ``format`` label an envelope declares, without
+ *  decrypting. ``undefined`` when the text is not a JSON envelope. */
+function readEnvelopeFormat(fileText: string): string | undefined {
+    try {
+        const env = JSON.parse(fileText) as { format?: unknown };
+        return typeof env.format === "string" ? env.format : undefined;
+    } catch {
+        return undefined;
+    }
 }
 
 /**
@@ -63,6 +86,13 @@ export interface KeyVaultImportResult<P extends string = string> {
  * adapter. Throws {@link VaultDecryptError} for a wrong passphrase /
  * corrupt / foreign file BEFORE any write (no partial import). Accepts both
  * the generic payload shape and the legacy adaptive-learner shape.
+ *
+ * Import is format-AGNOSTIC by design so keys port between sibling apps: it
+ * decrypts with the format the FILE declares, not the host app's own label.
+ * The security boundary is the passphrase + the AES-GCM authentication tag,
+ * not the plaintext format string; a wrong passphrase or a tampered file
+ * still fails to decrypt. Pair with ``options.providerAliases`` when the two
+ * apps name a provider differently (e.g. ``{ gemini: "google" }``).
  */
 export async function importEncryptedKeyVault<P extends string>(
     adapter: AiKeyStoreAdapter<P>,
@@ -72,9 +102,13 @@ export async function importEncryptedKeyVault<P extends string>(
     options: KeyVaultIoOptions<P>,
 ): Promise<KeyVaultImportResult<P>> {
     const decrypted = await decryptFromVault<unknown>(fileText, passphrase, {
-        format: options.format,
+        // Decrypt against the file's own declared format (falling back to the
+        // host label for a non-JSON input, which then fails to decrypt).
+        format: readEnvelopeFormat(fileText) ?? options.format,
     });
-    const payload = normalizeKeyVaultPayload(options.providerIds, decrypted);
+    const payload = normalizeKeyVaultPayload(options.providerIds, decrypted, {
+        aliases: options.providerAliases,
+    });
     if (payload === null) {
         // A valid envelope that decrypted to the wrong shape (e.g. a foreign
         // file) — reject the same friendly way, never a partial write.

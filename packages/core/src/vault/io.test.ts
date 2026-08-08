@@ -3,6 +3,7 @@ import { VaultDecryptError, encryptToVault } from "@astrapi69/passphrase-vault";
 
 import type { AiKeyStoreAdapter, AiSettingsSnapshot } from "../storage/adapter";
 import { buildEncryptedKeyVault, importEncryptedKeyVault } from "./io";
+import { buildKeyVaultPayload } from "./payload";
 
 const IDS = ["anthropic", "openai", "gemini"] as const;
 type Id = (typeof IDS)[number];
@@ -143,22 +144,94 @@ describe("importEncryptedKeyVault", () => {
         expect(target.state.keys).toEqual({});
     });
 
-    it("supports a custom envelope format end to end", async () => {
+    it("stamps a custom envelope format on export", async () => {
         const source = makeAdapter({ openai: "sk-abc" });
         const envelope = await buildEncryptedKeyVault(source.adapter, "u1", "pw", {
             providerIds: IDS,
             format: "my-app-keys",
         });
+        expect(JSON.parse(envelope!).format).toBe("my-app-keys");
+    });
+
+    it("imports format-agnostically: a sibling app's format opens without naming it", async () => {
+        const source = makeAdapter({ openai: "sk-abc" });
+        const envelope = await buildEncryptedKeyVault(source.adapter, "u1", "pw", {
+            providerIds: IDS,
+            format: "sibling-app-keys",
+        });
+        // Neither omitting the format nor giving a DIFFERENT host format
+        // blocks the import: it decrypts with the file's OWN declared format.
+        const target1 = makeAdapter({});
+        const r1 = await importEncryptedKeyVault(target1.adapter, "u1", envelope!, "pw", {
+            providerIds: IDS,
+        });
+        expect(r1.providers).toEqual(["openai"]);
+
+        const target2 = makeAdapter({});
+        const r2 = await importEncryptedKeyVault(target2.adapter, "u1", envelope!, "pw", {
+            providerIds: IDS,
+            format: "this-host-format",
+        });
+        expect(r2.providers).toEqual(["openai"]);
+    });
+
+    it("still rejects a wrong passphrase regardless of format", async () => {
+        const source = makeAdapter({ openai: "sk-abc" });
+        const envelope = await buildEncryptedKeyVault(source.adapter, "u1", "correct-pw", {
+            providerIds: IDS,
+            format: "sibling-app-keys",
+        });
         const target = makeAdapter({});
         await expect(
-            importEncryptedKeyVault(target.adapter, "u1", envelope!, "pw", {
+            importEncryptedKeyVault(target.adapter, "u1", envelope!, "wrong-pw", {
                 providerIds: IDS,
             }),
         ).rejects.toBeInstanceOf(VaultDecryptError);
-        const result = await importEncryptedKeyVault(target.adapter, "u1", envelope!, "pw", {
-            providerIds: IDS,
-            format: "my-app-keys",
+        expect(target.state.keys).toEqual({});
+    });
+
+    it("remaps a sibling app's provider id via providerAliases (gemini -> google)", async () => {
+        // Source app names the provider "gemini"; this host names it "google".
+        const payload = buildKeyVaultPayload(
+            ["anthropic", "openai", "gemini"] as const,
+            { gemini: "AIza-key", anthropic: "sk-ant" },
+            { activeProvider: "gemini", modelOverride: {} },
+        );
+        const envelope = await encryptToVault(payload, "pw", { format: "sibling-app-keys" });
+
+        // A minimal host adapter that knows "google", not "gemini".
+        type HostId = "anthropic" | "openai" | "google";
+        const stored: Partial<Record<HostId, string>> = {};
+        let active: HostId | null = null;
+        const emptySnapshot = (): AiSettingsSnapshot<HostId> => ({
+            activeProvider: active,
+            hasKey: { anthropic: false, openai: false, google: false },
+            keySource: { anthropic: "none", openai: "none", google: "none" },
+            keyPreview: {},
+            modelOverride: {},
         });
-        expect(result.providers).toEqual(["openai"]);
+        const host: AiKeyStoreAdapter<HostId> = {
+            capabilities: { clientReadableKeys: true, keyBackup: false, liveTest: false },
+            getSettings: async () => emptySnapshot(),
+            patchSettings: async (_u, patch) => {
+                if ("activeProvider" in patch) active = patch.activeProvider ?? null;
+                return emptySnapshot();
+            },
+            setApiKey: async (_u, provider, key) => {
+                stored[provider] = key;
+                return emptySnapshot();
+            },
+            deleteApiKey: async () => emptySnapshot(),
+            exportApiKeys: async () => ({ ...stored }),
+        };
+
+        const result = await importEncryptedKeyVault(host, "u1", envelope, "pw", {
+            providerIds: ["anthropic", "openai", "google"],
+            providerAliases: { gemini: "google" },
+        });
+        expect(result.providers).toContain("google");
+        expect(stored.google).toBe("AIza-key");
+        expect(stored.anthropic).toBe("sk-ant");
+        expect(active).toBe("google");
     });
 });

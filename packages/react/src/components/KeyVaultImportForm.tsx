@@ -30,8 +30,19 @@ export interface KeyVaultImportFormProps {
     onImported: (result: KeyVaultImportResult) => void;
 }
 
+/** The plaintext ``format`` an envelope declares, or ``undefined`` for
+ *  non-JSON input. Used for format-agnostic import validation. */
+function envelopeFormatOf(text: string): string | undefined {
+    try {
+        const env = JSON.parse(text) as { format?: unknown };
+        return typeof env.format === "string" ? env.format : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
 export function KeyVaultImportForm({ onImported }: KeyVaultImportFormProps) {
-    const { t, notify, Button, adapter, registry, userId, vaultFormat } =
+    const { t, notify, Button, adapter, registry, userId, importProviderAliases } =
         useAiSettingsContext();
     const [importPass, setImportPass] = useState("");
     const [importFile, setImportFile] = useState<File | null>(null);
@@ -41,8 +52,14 @@ export function KeyVaultImportForm({ onImported }: KeyVaultImportFormProps) {
 
     const importTextTrimmed = importText.trim();
     const importTextPresent = importTextTrimmed.length > 0;
+    // Format-AGNOSTIC: accept any well-formed vault envelope, whatever app
+    // stamped it, by validating against the file's OWN declared format. This
+    // is what lets a user paste a sibling app's export and import it here.
+    const importTextEnvelopeFormat = envelopeFormatOf(importTextTrimmed);
     const importTextValid =
-        importTextPresent && looksLikeVaultEnvelope(importTextTrimmed, { format: vaultFormat });
+        importTextPresent &&
+        importTextEnvelopeFormat !== undefined &&
+        looksLikeVaultEnvelope(importTextTrimmed, { format: importTextEnvelopeFormat });
     const importTextInvalid = importTextPresent && !importTextValid;
     const importHasSource = importTextValid || importFile !== null;
     const importValid = importHasSource && !importTextInvalid && importPass.length > 0;
@@ -61,7 +78,9 @@ export function KeyVaultImportForm({ onImported }: KeyVaultImportFormProps) {
                 importPass,
                 {
                     providerIds: registry.ids,
-                    format: vaultFormat,
+                    // Import is format-agnostic (core decrypts with the file's
+                    // own format); aliases port a sibling app's provider ids.
+                    providerAliases: importProviderAliases,
                 },
             );
             setImportPass("");

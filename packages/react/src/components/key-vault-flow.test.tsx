@@ -52,6 +52,37 @@ describe("KeyVaultImportForm", () => {
         expect(result.providers).toHaveLength(2);
     });
 
+    it("imports a sibling app's envelope with a different format (format-agnostic)", async () => {
+        const source = makeMockAdapter({
+            initialKeys: { anthropic: "good-ant" },
+            initialActive: "anthropic",
+        });
+        const envelope = await buildEncryptedKeyVault(source.adapter, "u1", "passphrase12", {
+            providerIds: TEST_IDS,
+            format: "sibling-app-keys",
+        });
+        const target = makeMockAdapter({});
+        // This host stamps a DIFFERENT format on its own exports.
+        const Wrapper = makeWrapper({ adapter: target.adapter, vaultFormat: "this-app-keys" });
+        render(
+            <Wrapper>
+                <KeyVaultImportForm onImported={vi.fn()} />
+            </Wrapper>,
+        );
+
+        fireEvent.change(screen.getByTestId("key-vault-import-text"), {
+            target: { value: envelope },
+        });
+        // The paste is NOT flagged invalid despite the foreign format.
+        expect(screen.getByTestId("key-vault-import-text-error").textContent).toBe("");
+        fireEvent.change(screen.getByTestId("key-vault-import-pass"), {
+            target: { value: "passphrase12" },
+        });
+        fireEvent.click(screen.getByTestId("key-vault-import-button"));
+
+        await waitFor(() => expect(target.state.keys).toEqual({ anthropic: "good-ant" }));
+    });
+
     it("warns (not errors) on a wrong passphrase and writes nothing", async () => {
         const source = makeMockAdapter({ initialKeys: { gemini: "good-gem" }, initialActive: "gemini" });
         const envelope = await buildEncryptedKeyVault(source.adapter, "u1", "correctpass", {
