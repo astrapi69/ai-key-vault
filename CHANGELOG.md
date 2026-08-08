@@ -28,6 +28,12 @@ packages follow [Semantic Versioning](https://semver.org/).
   neither known nor aliased still rejects the payload, preserving the
   foreign-file protection. `normalizeKeyVaultPayload` gained the same
   `aliases` option.
+- `@astrapi69/ai-key-vault`: `PERPLEXITY_PROVIDER`, a ready OpenAI-compatible
+  provider descriptor apps can spread into their registry
+  (`createProviderRegistry([...BUILTIN_PROVIDERS, PERPLEXITY_PROVIDER])`).
+  Deliberately NOT in the browser-direct `BUILTIN_PROVIDERS` trio: Perplexity
+  has no browser-direct CORS opt-in, so it is `corsBlocked` and must be routed
+  through a backend proxy (base URL `https://api.perplexity.ai`).
 
 ## [0.2.2] - 2026-08-08
 

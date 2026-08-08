@@ -14,6 +14,7 @@ export {
     BUILTIN_PROVIDERS,
     BUILTIN_REGISTRY,
     DEFAULT_MODELS,
+    PERPLEXITY_PROVIDER,
     createProviderRegistry,
     providerRequiresApiKey,
     resolveModel,
