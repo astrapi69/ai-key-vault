@@ -160,3 +160,25 @@ export const DEFAULT_MODELS: Record<BuiltinProviderId, string> = Object.fromEntr
 /** Ready-made registry over the built-in trio. */
 export const BUILTIN_REGISTRY: ProviderRegistry<BuiltinProviderId> =
     createProviderRegistry(BUILTIN_PROVIDERS);
+
+/**
+ * Perplexity - an OpenAI-compatible provider, offered as a ready descriptor
+ * apps can spread into their registry (`createProviderRegistry([...BUILTIN_PROVIDERS, PERPLEXITY_PROVIDER])`).
+ *
+ * Deliberately NOT part of {@link BUILTIN_PROVIDERS}: that trio is the set the
+ * built-in BROWSER-DIRECT clients (`clients/chat.ts`, model discovery) cover,
+ * and Perplexity offers no browser-direct CORS opt-in. It is therefore marked
+ * `corsBlocked` and must be routed through a backend proxy; a host wires it
+ * via its own OpenAI-compatible request path (base URL below).
+ */
+export const PERPLEXITY_PROVIDER: AiProviderDescriptor<"perplexity"> = {
+    id: "perplexity",
+    label: "Perplexity",
+    keyFormat: { prefix: "pplx-", minLength: 20 },
+    keyFormatHint: "Starts with pplx-",
+    defaultModel: "sonar-pro",
+    recommendedModels: ["sonar", "sonar-pro", "sonar-reasoning"],
+    baseUrl: "https://api.perplexity.ai",
+    requiresApiKey: true,
+    corsBlocked: true,
+};

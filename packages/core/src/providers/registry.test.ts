@@ -3,11 +3,38 @@ import { describe, expect, it } from "vitest";
 import {
     BUILTIN_PROVIDERS,
     DEFAULT_MODELS,
+    PERPLEXITY_PROVIDER,
     createProviderRegistry,
     providerRequiresApiKey,
     resolveModel,
 } from "./registry";
 import type { AiProviderDescriptor } from "./registry";
+import { isValidApiKeyFormat } from "./key-format";
+
+describe("PERPLEXITY_PROVIDER", () => {
+    it("is an OpenAI-compatible, backend-only (corsBlocked) extra descriptor", () => {
+        expect(PERPLEXITY_PROVIDER.id).toBe("perplexity");
+        expect(PERPLEXITY_PROVIDER.corsBlocked).toBe(true);
+        expect(PERPLEXITY_PROVIDER.baseUrl).toBe("https://api.perplexity.ai");
+        // Not part of the browser-direct trio.
+        expect(BUILTIN_PROVIDERS.some((d) => (d.id as string) === "perplexity")).toBe(false);
+    });
+
+    it("spreads into a registry alongside the builtins", () => {
+        const registry = createProviderRegistry([...BUILTIN_PROVIDERS, PERPLEXITY_PROVIDER]);
+        expect(registry.has("perplexity")).toBe(true);
+        expect(registry.get("perplexity").defaultModel).toBe("sonar-pro");
+    });
+
+    it("validates a pplx- key and rejects a foreign one", () => {
+        expect(isValidApiKeyFormat(PERPLEXITY_PROVIDER.keyFormat, "pplx-" + "a".repeat(20))).toBe(
+            true,
+        );
+        expect(isValidApiKeyFormat(PERPLEXITY_PROVIDER.keyFormat, "sk-" + "a".repeat(20))).toBe(
+            false,
+        );
+    });
+});
 
 describe("createProviderRegistry", () => {
     it("exposes ids in declaration order and looks descriptors up", () => {
