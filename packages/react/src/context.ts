@@ -61,6 +61,10 @@ export interface AiSettingsContextValue<P extends string = string> {
     /** Envelope format string for the encrypted key vault. Defaults to the
      *  passphrase-vault default when omitted. */
     vaultFormat?: string;
+    /** Map a sibling app's provider ids onto this app's ids when IMPORTING a
+     *  key vault (e.g. `{ gemini: "google" }`), so a user can port keys across
+     *  apps that name the same provider differently. */
+    importProviderAliases?: Readonly<Record<string, string>>;
     /** True when the app runs browser-direct (no backend proxy). Drives the
      *  desktop-only provider status. Defaults to
      *  `adapter.capabilities.clientReadableKeys`. */

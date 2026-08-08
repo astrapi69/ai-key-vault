@@ -6,6 +6,26 @@ packages follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Cross-app key portability.** `@astrapi69/ai-key-vault`
+  `importEncryptedKeyVault` (and the React `KeyVaultImportForm`) is now
+  **format-agnostic**: it decrypts with the format the FILE itself declares
+  instead of the host app's own label, so a user can import a sibling app's
+  `.alk` export without it being rejected as a "foreign file". The security
+  boundary is unchanged - the passphrase plus the AES-GCM authentication tag;
+  a wrong passphrase or a tampered file still fails to decrypt.
+
+### Added
+
+- `@astrapi69/ai-key-vault`: `providerAliases` option on import (and
+  `importProviderAliases` on the React `AiSettingsProvider`) maps a source
+  app's provider ids onto the host's (e.g. `{ gemini: "google" }`), so keys
+  land on the right provider when two apps name it differently. An id that is
+  neither known nor aliased still rejects the payload, preserving the
+  foreign-file protection. `normalizeKeyVaultPayload` gained the same
+  `aliases` option.
+
 ## [0.2.2] - 2026-08-08
 
 ### Added
