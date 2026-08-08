@@ -6,6 +6,20 @@ packages follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `@astrapi69/ai-key-vault-react`: `KeyVaultImportForm`'s `onImported`
+  callback now receives the `KeyVaultImportResult` (`{ providers }`) from the
+  core import, so a host can report which providers received a key
+  (e.g. "2 keys imported") instead of a bare "something happened". A
+  no-argument handler stays valid, so existing callers (including
+  `KeyVaultSection`) are unaffected.
+- Example: `packages/react/src/examples/KeyVaultRoundTripExample.tsx` (+ test)
+  demonstrates the full encrypted EXPORT -> IMPORT round trip between two
+  in-memory "devices" using only the public API, including the smallest
+  `AiKeyStoreAdapter` a host has to implement. Dev-only living documentation
+  (tsup bundles only `index.ts`, so it is not part of the published entry).
+
 ## [0.2.1] - 2026-07-20
 
 ### Fixed

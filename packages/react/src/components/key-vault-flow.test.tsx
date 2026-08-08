@@ -46,6 +46,10 @@ describe("KeyVaultImportForm", () => {
         expect(target.state.keys).toEqual({ anthropic: "good-ant", openai: "good-oai" });
         expect(target.state.activeProvider).toBe("openai");
         expect(notify.messages.some((m) => m.startsWith("success:"))).toBe(true);
+        // onImported reports which providers received a key.
+        const result = onImported.mock.calls[0][0];
+        expect(result.providers).toEqual(expect.arrayContaining(["anthropic", "openai"]));
+        expect(result.providers).toHaveLength(2);
     });
 
     it("warns (not errors) on a wrong passphrase and writes nothing", async () => {
