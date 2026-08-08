@@ -15,14 +15,19 @@ import {
     emitSettingsRefresh,
     importEncryptedKeyVault,
     looksLikeVaultEnvelope,
+    type KeyVaultImportResult,
 } from "@astrapi69/ai-key-vault";
 
 import { useAiSettingsContext } from "../context";
 import { SecretInput } from "../SecretInput";
 
 export interface KeyVaultImportFormProps {
-    /** Called after a successful import (parent flips its "has keys" gate). */
-    onImported: () => void;
+    /**
+     * Called after a successful import. Receives the import result so the
+     * parent can report which providers got a key (e.g. "2 keys imported")
+     * and flip its "has keys" gate. A no-argument handler stays valid.
+     */
+    onImported: (result: KeyVaultImportResult) => void;
 }
 
 export function KeyVaultImportForm({ onImported }: KeyVaultImportFormProps) {
@@ -49,15 +54,21 @@ export function KeyVaultImportForm({ onImported }: KeyVaultImportFormProps) {
             const envelopeText = importTextValid
                 ? importTextTrimmed
                 : await importFile!.text();
-            await importEncryptedKeyVault(adapter, userId, envelopeText, importPass, {
-                providerIds: registry.ids,
-                format: vaultFormat,
-            });
+            const result = await importEncryptedKeyVault(
+                adapter,
+                userId,
+                envelopeText,
+                importPass,
+                {
+                    providerIds: registry.ids,
+                    format: vaultFormat,
+                },
+            );
             setImportPass("");
             setImportFile(null);
             setImportText("");
             if (fileInputRef.current) fileInputRef.current.value = "";
-            onImported();
+            onImported(result);
             emitSettingsRefresh();
             notify.success(
                 t("settings.key_vault.success_import", "Keys imported. AI features are ready again."),
