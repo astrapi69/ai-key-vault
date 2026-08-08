@@ -1,6 +1,6 @@
 {
     "name": "@astrapi69/ai-key-vault",
-    "version": "0.1.1",
+    "version": "0.2.0",
     "description": "Storage-agnostic BYOK AI provider settings core: provider registry, key store adapter interface, passphrase-encrypted key vault, browser-direct chat clients with SSE streaming, and model discovery",
     "license": "MIT",
     "author": "Asterios Raptis",
@@ -9,7 +9,16 @@
         "url": "git+https://github.com/astrapi69/ai-key-vault.git",
         "directory": "packages/core"
     },
-    "keywords": ["ai", "byok", "api-key", "vault", "anthropic", "openai", "gemini", "streaming"],
+    "keywords": [
+        "ai",
+        "byok",
+        "api-key",
+        "vault",
+        "anthropic",
+        "openai",
+        "gemini",
+        "streaming"
+    ],
     "type": "module",
     "main": "./dist/index.cjs",
     "module": "./dist/index.js",
@@ -26,7 +35,10 @@
             }
         }
     },
-    "files": ["dist", "README.md"],
+    "files": [
+        "dist",
+        "README.md"
+    ],
     "sideEffects": false,
     "scripts": {
         "build": "tsup"

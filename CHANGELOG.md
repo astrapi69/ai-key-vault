@@ -6,9 +6,12 @@ packages follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-08
+
 ### Changed
 
-- **Cross-app key portability.** `@astrapi69/ai-key-vault`
+- **Cross-app key portability.** `@astrapi69/ai-key-vault` 0.2.0 /
+  `@astrapi69/ai-key-vault-react` 0.3.0:
   `importEncryptedKeyVault` (and the React `KeyVaultImportForm`) is now
   **format-agnostic**: it decrypts with the format the FILE itself declares
   instead of the host app's own label, so a user can import a sibling app's
