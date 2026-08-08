@@ -6,9 +6,11 @@ packages follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-08-08
+
 ### Added
 
-- `@astrapi69/ai-key-vault-react`: `KeyVaultImportForm`'s `onImported`
+- `@astrapi69/ai-key-vault-react` 0.2.0: `KeyVaultImportForm`'s `onImported`
   callback now receives the `KeyVaultImportResult` (`{ providers }`) from the
   core import, so a host can report which providers received a key
   (e.g. "2 keys imported") instead of a bare "something happened". A

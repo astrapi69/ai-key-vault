@@ -1,6 +1,6 @@
 {
     "name": "@astrapi69/ai-key-vault-react",
-    "version": "0.1.2",
+    "version": "0.2.0",
     "description": "React UI for BYOK AI provider settings and the encrypted key vault: settings panel, provider table, key vault import/export — storage-, i18n- and UI-slot-injectable",
     "license": "MIT",
     "author": "Asterios Raptis",
@@ -9,7 +9,15 @@
         "url": "git+https://github.com/astrapi69/ai-key-vault.git",
         "directory": "packages/react"
     },
-    "keywords": ["react", "ai", "byok", "api-key", "vault", "settings", "components"],
+    "keywords": [
+        "react",
+        "ai",
+        "byok",
+        "api-key",
+        "vault",
+        "settings",
+        "components"
+    ],
     "type": "module",
     "main": "./dist/index.cjs",
     "module": "./dist/index.js",
@@ -26,7 +34,10 @@
             }
         }
     },
-    "files": ["dist", "README.md"],
+    "files": [
+        "dist",
+        "README.md"
+    ],
     "sideEffects": false,
     "scripts": {
         "build": "tsup"
