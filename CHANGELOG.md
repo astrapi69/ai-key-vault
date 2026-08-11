@@ -6,6 +6,15 @@ packages follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **`@astrapi69/ai-key-vault-react` 0.3.1**: `KeyVaultImportForm`'s native
+  file-picker input carried no styling for the browser's own button, so it
+  rendered as raw OS chrome next to the rest of the panel's themed controls.
+  Styled via Tailwind's `file:` variant with the same generic tokens the
+  component already uses (`bg-primary` / `text-primary-foreground`) - no new
+  prop or slot, the element stays a plain native `<input type="file">`.
+
 ## [0.3.0] - 2026-08-08
 
 ### Changed
