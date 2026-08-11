@@ -122,33 +122,6 @@ export function KeyVaultImportForm({ onImported }: KeyVaultImportFormProps) {
                     "Choose the encrypted key file, or paste its contents below. Either way works.",
                 )}
             </p>
-            {/* #15 — styled via a shipped CSS rule + custom properties, NOT
-                Tailwind file:* utilities: a host's Tailwind JIT scanner only
-                scans its OWN source tree, never node_modules, so file:*
-                classes from a kit package silently produce zero CSS (0.3.1
-                shipped exactly that and it never rendered). A host MAY set
-                --akv-primary / --akv-primary-foreground / --akv-primary-hover
-                to match its own theme; the fallback keeps it presentable
-                with zero host configuration. Both the standard selector and
-                the legacy WebKit one target the same native button. */}
-            <style>{`
-                .akv-file-input::file-selector-button,
-                .akv-file-input::-webkit-file-upload-button {
-                    margin-right: 0.75rem;
-                    cursor: pointer;
-                    border: 0;
-                    border-radius: 0.375rem;
-                    padding: 0.5rem 1rem;
-                    font-size: 0.875rem;
-                    font-weight: 500;
-                    background: var(--akv-primary, #4f46e5);
-                    color: var(--akv-primary-foreground, #ffffff);
-                }
-                .akv-file-input:hover::file-selector-button,
-                .akv-file-input:hover::-webkit-file-upload-button {
-                    background: var(--akv-primary-hover, #4338ca);
-                }
-            `}</style>
             <input
                 ref={fileInputRef}
                 type="file"

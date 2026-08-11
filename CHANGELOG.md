@@ -13,12 +13,15 @@ packages follow [Semantic Versioning](https://semver.org/).
   consumer, because a host's Tailwind JIT scanner only scans its own source
   tree, not `node_modules`. Verified against a real app after the 0.3.1
   bump: zero `.file\:` rules in the compiled CSS, button still native chrome.
-  Replaced with a `::file-selector-button` (+ legacy `::-webkit-file-upload-button`)
-  rule shipped inline by the component itself, styled via CSS custom
-  properties with fallback defaults (`var(--akv-primary, #4f46e5)` etc.) - a
-  host MAY override the variables to match its own theme, but gets a
-  reasonable default with zero configuration, regardless of bundler/Tailwind
-  setup. 0.3.1 is superseded; upgrade straight to 0.3.2.
+  Rather than have the kit ship its own appearance for it (a CSS file/inline
+  `<style>` + fallback colours the kit would then own and every host would
+  inherit unstyled), `KeyVaultImportForm`'s file input now carries a stable
+  `akv-file-input` class and nothing else - consistent with the existing
+  slot philosophy (Button/Input/Link), the kit stays purely structural and
+  the host styles `.akv-file-input::file-selector-button` from its own
+  stylesheet with its own tokens. See the README's "Styling the native
+  file-picker button" section. 0.3.1 is superseded; upgrade straight to
+  0.3.2.
 - **`@astrapi69/ai-key-vault-react` 0.3.1**: `KeyVaultImportForm`'s native
   file-picker input carried no styling for the browser's own button, so it
   rendered as raw OS chrome next to the rest of the panel's themed controls.
