@@ -45,6 +45,30 @@ Everything except `adapter`, `registry` and `userId` has a default, so the
 UI renders with zero wiring and adopts your look/behaviour as you override
 slots.
 
+### Styling the native file-picker button
+
+`KeyVaultImportForm`'s file input is plain native HTML (no slot for it -
+there's no sane way to inject a whole `<input type="file">` replacement), so
+it renders as unstyled OS chrome by default, same as any bare file input. It
+carries a stable class, `akv-file-input`, so a host can style the native
+button from its OWN stylesheet without depending on an undocumented
+`data-testid`:
+
+```css
+.akv-file-input::file-selector-button {
+    /* also add ::-webkit-file-upload-button for older Safari/Chrome */
+    cursor: pointer;
+    border: 0;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    background: var(--your-accent-token);
+    color: var(--your-accent-fg-token);
+}
+```
+
+The kit ships no rule of its own for it - consistent with the slot
+philosophy above, appearance is entirely the host's call.
+
 ## What you get
 
 - **`AiSettingsPanel`** — provider overview, active-provider select,

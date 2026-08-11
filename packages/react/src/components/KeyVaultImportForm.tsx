@@ -128,7 +128,7 @@ export function KeyVaultImportForm({ onImported }: KeyVaultImportFormProps) {
                 accept={KEY_VAULT_EXTENSION}
                 onChange={(e) => setImportFile(e.target.files?.[0] ?? null)}
                 aria-label={t("settings.key_vault.import_file_label", "Encrypted key file")}
-                className="text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+                className="akv-file-input text-sm text-foreground"
                 data-testid="key-vault-import-file"
             />
             <label className="text-xs text-muted-foreground" htmlFor="key-vault-import-text">

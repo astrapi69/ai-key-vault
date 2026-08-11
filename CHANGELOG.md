@@ -8,12 +8,25 @@ packages follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **`@astrapi69/ai-key-vault-react` 0.3.2**: 0.3.1's file-picker button fix
+  used Tailwind `file:*` utility classes - which never render in a real
+  consumer, because a host's Tailwind JIT scanner only scans its own source
+  tree, not `node_modules`. Verified against a real app after the 0.3.1
+  bump: zero `.file\:` rules in the compiled CSS, button still native chrome.
+  Rather than have the kit ship its own appearance for it (a CSS file/inline
+  `<style>` + fallback colours the kit would then own and every host would
+  inherit unstyled), `KeyVaultImportForm`'s file input now carries a stable
+  `akv-file-input` class and nothing else - consistent with the existing
+  slot philosophy (Button/Input/Link), the kit stays purely structural and
+  the host styles `.akv-file-input::file-selector-button` from its own
+  stylesheet with its own tokens. See the README's "Styling the native
+  file-picker button" section. 0.3.1 is superseded; upgrade straight to
+  0.3.2.
 - **`@astrapi69/ai-key-vault-react` 0.3.1**: `KeyVaultImportForm`'s native
   file-picker input carried no styling for the browser's own button, so it
   rendered as raw OS chrome next to the rest of the panel's themed controls.
-  Styled via Tailwind's `file:` variant with the same generic tokens the
-  component already uses (`bg-primary` / `text-primary-foreground`) - no new
-  prop or slot, the element stays a plain native `<input type="file">`.
+  (Superseded by 0.3.2 above - the Tailwind `file:` approach didn't work in
+  practice.)
 
 ## [0.3.0] - 2026-08-08
 
