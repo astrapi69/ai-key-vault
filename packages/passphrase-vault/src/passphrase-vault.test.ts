@@ -224,3 +224,54 @@ describe("looksLikeVaultEnvelope", () => {
         expect(looksLikeVaultEnvelope(foreign, { format: "other-app" })).toBe(true);
     });
 });
+
+interface MutableEnvelope {
+    kdf: { iterations: number; salt: string };
+    cipher: { iv: string };
+    ciphertext: string;
+}
+
+/** The 0.1.1 fixture with one field changed, as a crafted or damaged file. */
+function legacyWith(change: (env: MutableEnvelope) => void): string {
+    const env = JSON.parse(LEGACY_250K_VAULT) as MutableEnvelope;
+    change(env);
+    return JSON.stringify(env);
+}
+
+const MALFORMED: ReadonlyArray<[string, (env: MutableEnvelope) => void]> = [
+    ["iterations 0", (env) => { env.kdf.iterations = 0; }],
+    ["iterations -1", (env) => { env.kdf.iterations = -1; }],
+    ["iterations 2^32", (env) => { env.kdf.iterations = 2 ** 32; }],
+    ["salt not base64", (env) => { env.kdf.salt = "!!!"; }],
+    ["iv not base64", (env) => { env.cipher.iv = "!!!"; }],
+    ["ciphertext not base64", (env) => { env.ciphertext = "!!!"; }],
+];
+
+describe("an envelope with a malformed iteration count or base64 field", () => {
+    it.each(MALFORMED)("%s: fails the structural check", (_name, change) => {
+        expect(looksLikeVaultEnvelope(legacyWith(change), { format: LEGACY_FORMAT })).toBe(false);
+    });
+
+    it.each(MALFORMED)("%s: decrypt rejects with VaultDecryptError", async (_name, change) => {
+        const raw = legacyWith(change);
+        await expect(
+            decryptFromVault(raw, LEGACY_PASSPHRASE, { format: LEGACY_FORMAT }),
+        ).rejects.toBeInstanceOf(VaultDecryptError);
+        await expect(
+            decryptAndUpgradeVault(raw, LEGACY_PASSPHRASE, { format: LEGACY_FORMAT }),
+        ).rejects.toBeInstanceOf(VaultDecryptError);
+    });
+
+    it("a fractional count fails the structural check", () => {
+        const raw = legacyWith((env) => { env.kdf.iterations = 1.5; });
+        expect(looksLikeVaultEnvelope(raw, { format: LEGACY_FORMAT })).toBe(false);
+    });
+
+    it("counts from 1 to WebCrypto's 2^32 - 1 pass the structural check", () => {
+        // Structure only: deriving with 2^32 - 1 would take minutes.
+        for (const iterations of [1, 2 ** 32 - 1]) {
+            const raw = legacyWith((env) => { env.kdf.iterations = iterations; });
+            expect(looksLikeVaultEnvelope(raw, { format: LEGACY_FORMAT })).toBe(true);
+        }
+    });
+});

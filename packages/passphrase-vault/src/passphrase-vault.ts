@@ -42,6 +42,12 @@ const VERSION = 1 as const;
  * Until 0.1.1 new envelopes used 250,000.
  */
 const PBKDF2_ITERATIONS = 600_000;
+/**
+ * Largest stored count the read path accepts: WebCrypto's
+ * ``Pbkdf2Params.iterations`` is an ``[EnforceRange] unsigned long``, so a
+ * larger count can never derive. A technical bound, not a policy ceiling.
+ */
+const WEBCRYPTO_MAX_ITERATIONS = 2 ** 32 - 1;
 const PBKDF2_HASH = "SHA-256" as const;
 const SALT_BYTES = 16;
 const IV_BYTES = 12;
@@ -200,7 +206,29 @@ function parseEnvelope(raw: string, expectedFormat: string): VaultEnvelope {
     ) {
         throw new VaultDecryptError();
     }
-    return env as VaultEnvelope;
+    const valid = env as VaultEnvelope;
+    if (
+        !isValidIterationCount(valid.kdf.iterations) ||
+        !isBase64(valid.kdf.salt) ||
+        !isBase64(valid.cipher.iv) ||
+        !isBase64(valid.ciphertext)
+    ) {
+        throw new VaultDecryptError();
+    }
+    return valid;
+}
+
+function isValidIterationCount(value: number): boolean {
+    return Number.isInteger(value) && value >= 1 && value <= WEBCRYPTO_MAX_ITERATIONS;
+}
+
+function isBase64(value: string): boolean {
+    try {
+        atob(value);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 /**
