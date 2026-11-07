@@ -57,12 +57,57 @@ describe("encryptToVault / decryptFromVault", () => {
         expect(a.cipher.iv).not.toBe(b.cipher.iv);
     });
 
-    it("honors the iteration count stored in the envelope on decrypt", async () => {
+    it("stamps the KDF and cipher parameters into a new envelope", async () => {
         const envelope = JSON.parse(await encryptToVault(PAYLOAD, "pw"));
         expect(envelope.kdf.iterations).toBe(250_000);
         expect(envelope.version).toBe(1);
         expect(envelope.kdf.name).toBe("PBKDF2");
+        expect(envelope.kdf.hash).toBe("SHA-256");
         expect(envelope.cipher.name).toBe("AES-GCM");
+    });
+});
+
+/**
+ * A vault written by @astrapi69/passphrase-vault 0.1.1 (main 7493757) with
+ * 250,000 PBKDF2 iterations: passphrase "correct horse", payload PAYLOAD.
+ * Kept byte for byte so the read path stays compatible with files already in
+ * the wild, independent of the iteration count new vaults use.
+ */
+const LEGACY_FORMAT = "legacy-fixture";
+const LEGACY_PASSPHRASE = "correct horse";
+const LEGACY_250K_VAULT = JSON.stringify({
+    format: LEGACY_FORMAT,
+    version: 1,
+    kdf: {
+        name: "PBKDF2",
+        hash: "SHA-256",
+        iterations: 250000,
+        salt: "O+MemDUjHKbo5ljA16xWVw==",
+    },
+    cipher: { name: "AES-GCM", iv: "TKxcMWVNeE0d4LYl" },
+    ciphertext:
+        "Dz03fCDuEh00G7FBBT99mxLVeHe1sfexiY4HI8TN0LjsPK5xHCeIpi07u6S0c4hQl0UfVtyRHZYSnjIfH1nXcsl+zw==",
+});
+
+describe("a vault written with 250,000 iterations (0.1.1)", () => {
+    it("is the 0.1.1 envelope shape with 250,000 iterations", () => {
+        expect(JSON.parse(LEGACY_250K_VAULT).kdf.iterations).toBe(250_000);
+        expect(looksLikeVaultEnvelope(LEGACY_250K_VAULT, { format: LEGACY_FORMAT })).toBe(true);
+    });
+
+    it("opens with its passphrase, deriving with the count it stores", async () => {
+        const decrypted = await decryptFromVault<typeof PAYLOAD>(
+            LEGACY_250K_VAULT,
+            LEGACY_PASSPHRASE,
+            { format: LEGACY_FORMAT },
+        );
+        expect(decrypted).toEqual(PAYLOAD);
+    });
+
+    it("rejects a wrong passphrase with VaultDecryptError", async () => {
+        await expect(
+            decryptFromVault(LEGACY_250K_VAULT, "wrong", { format: LEGACY_FORMAT }),
+        ).rejects.toBeInstanceOf(VaultDecryptError);
     });
 });
 
