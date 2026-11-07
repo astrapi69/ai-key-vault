@@ -248,22 +248,30 @@ const MALFORMED: ReadonlyArray<[string, (env: MutableEnvelope) => void]> = [
 ];
 
 describe("an envelope with a malformed iteration count or base64 field", () => {
-    it.each(MALFORMED)("%s: passes the structural check", (_name, change) => {
-        expect(looksLikeVaultEnvelope(legacyWith(change), { format: LEGACY_FORMAT })).toBe(true);
+    it.each(MALFORMED)("%s: fails the structural check", (_name, change) => {
+        expect(looksLikeVaultEnvelope(legacyWith(change), { format: LEGACY_FORMAT })).toBe(false);
     });
 
-    it.each(MALFORMED)("%s: decrypt rejects with a raw error, not VaultDecryptError", async (_name, change) => {
+    it.each(MALFORMED)("%s: decrypt rejects with VaultDecryptError", async (_name, change) => {
         const raw = legacyWith(change);
         await expect(
             decryptFromVault(raw, LEGACY_PASSPHRASE, { format: LEGACY_FORMAT }),
-        ).rejects.not.toBeInstanceOf(VaultDecryptError);
+        ).rejects.toBeInstanceOf(VaultDecryptError);
         await expect(
             decryptAndUpgradeVault(raw, LEGACY_PASSPHRASE, { format: LEGACY_FORMAT }),
-        ).rejects.not.toBeInstanceOf(VaultDecryptError);
+        ).rejects.toBeInstanceOf(VaultDecryptError);
     });
 
-    it("a fractional count passes the structural check", () => {
+    it("a fractional count fails the structural check", () => {
         const raw = legacyWith((env) => { env.kdf.iterations = 1.5; });
-        expect(looksLikeVaultEnvelope(raw, { format: LEGACY_FORMAT })).toBe(true);
+        expect(looksLikeVaultEnvelope(raw, { format: LEGACY_FORMAT })).toBe(false);
+    });
+
+    it("counts from 1 to WebCrypto's 2^32 - 1 pass the structural check", () => {
+        // Structure only: deriving with 2^32 - 1 would take minutes.
+        for (const iterations of [1, 2 ** 32 - 1]) {
+            const raw = legacyWith((env) => { env.kdf.iterations = iterations; });
+            expect(looksLikeVaultEnvelope(raw, { format: LEGACY_FORMAT })).toBe(true);
+        }
     });
 });
