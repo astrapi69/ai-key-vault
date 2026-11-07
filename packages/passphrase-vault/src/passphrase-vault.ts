@@ -34,7 +34,14 @@ export const DEFAULT_VAULT_FORMAT = "adaptive-learner-keys";
 
 /** Envelope version + algorithm parameters. Bumped only on a format change. */
 const VERSION = 1 as const;
-const PBKDF2_ITERATIONS = 250_000;
+/**
+ * PBKDF2 iterations for NEW envelopes: the OWASP Password Storage Cheat Sheet
+ * figure for PBKDF2-HMAC-SHA256. The count is stored per envelope and the read
+ * path derives with the stored count, so raising it never locks out older
+ * vaults; {@link decryptAndUpgradeVault} moves them to this count on unlock.
+ * Until 0.1.1 new envelopes used 250,000.
+ */
+const PBKDF2_ITERATIONS = 600_000;
 const PBKDF2_HASH = "SHA-256" as const;
 const SALT_BYTES = 16;
 const IV_BYTES = 12;
@@ -233,6 +240,56 @@ export async function decryptFromVault<T = unknown>(
     options?: VaultFormatOptions,
 ): Promise<T> {
     const env = parseEnvelope(raw, options?.format ?? DEFAULT_VAULT_FORMAT);
+    return decryptEnvelope<T>(env, passphrase);
+}
+
+/** Result of {@link decryptAndUpgradeVault}. */
+export interface VaultUnlockResult<T = unknown> {
+    /** The decrypted value. */
+    value: T;
+    /**
+     * The same value re-encrypted with the current KDF parameters (same
+     * passphrase, same format, fresh salt and IV) when the input envelope was
+     * written with fewer PBKDF2 iterations than new envelopes use; ``null``
+     * when the input is already current. Write it over the stored copy.
+     */
+    upgradedEnvelope: string | null;
+}
+
+/**
+ * Decrypt a stored envelope and, when it was written with fewer PBKDF2
+ * iterations than new envelopes use, hand back an upgraded envelope to
+ * replace the stored copy with.
+ *
+ * Use this on the unlock path of a vault you keep at rest (for example in
+ * ``localStorage``): older vaults keep opening with the count they store, and
+ * after the first successful unlock the caller persists ``upgradedEnvelope``
+ * so the vault carries the current count from then on. The upgraded envelope
+ * opens with the same passphrase and format.
+ *
+ * Decryption fails exactly like {@link decryptFromVault}: it throws
+ * {@link VaultDecryptError} and hands back nothing, so a wrong passphrase
+ * never produces an envelope that could overwrite the stored copy.
+ *
+ * @param raw - The stored envelope string.
+ * @param passphrase - The passphrase the vault was written with.
+ * @param options - Optional envelope format override.
+ */
+export async function decryptAndUpgradeVault<T = unknown>(
+    raw: string,
+    passphrase: string,
+    options?: VaultFormatOptions,
+): Promise<VaultUnlockResult<T>> {
+    const env = parseEnvelope(raw, options?.format ?? DEFAULT_VAULT_FORMAT);
+    const value = await decryptEnvelope<T>(env, passphrase);
+    const upgradedEnvelope =
+        env.kdf.iterations < PBKDF2_ITERATIONS
+            ? await encryptToVault(value, passphrase, { format: env.format })
+            : null;
+    return { value, upgradedEnvelope };
+}
+
+async function decryptEnvelope<T>(env: VaultEnvelope, passphrase: string): Promise<T> {
     const salt = fromBase64(env.kdf.salt);
     const iv = fromBase64(env.cipher.iv);
     const ciphertext = fromBase64(env.ciphertext);
